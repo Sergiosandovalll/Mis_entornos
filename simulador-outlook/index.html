@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulación Outlook Web — portalhipotecas@bancsabadell.com</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<header class="topbar">
+  <div class="topbar-left">
+    <div class="app-logo" aria-hidden="true">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+        <rect width="24" height="24" rx="4" fill="#0A63C2"/>
+        <path d="M12 5.5L19 8v8l-7 2.5L5 16V8l7-2.5z" fill="#fff" opacity="0.95"/>
+        <path d="M12 5.5v13" stroke="#0A63C2" stroke-width="0.6"/>
+      </svg>
+    </div>
+    <span class="app-title">Outlook</span>
+    <span class="mailbox-name" id="mailbox-name">portalhipotecas@bancsabadell.com</span>
+  </div>
+  <div class="topbar-right">
+    <button id="btn-panel-casos" class="ghost-btn" title="Mostrar caso esperado y comportamiento correcto de cada correo">
+      📋 Panel de casos
+    </button>
+    <button id="btn-reset-bandeja" class="ghost-btn" title="Vuelve a poblar la bandeja con un nuevo lote de correos de prueba">
+      🔄 Generar más / Resetear bandeja
+    </button>
+  </div>
+</header>
+
+<!-- ============ RIBBON ============ -->
+<div class="ribbon">
+  <button id="btn-nuevo-correo" class="ribbon-btn primary" disabled title="No implementado en el simulador">
+    ✉️ Nuevo correo
+  </button>
+  <div class="ribbon-sep"></div>
+  <button id="btn-responder" class="ribbon-btn" disabled>↩️ Responder</button>
+  <button id="btn-responder-todos" class="ribbon-btn" disabled>↩️↩️ Responder a todos</button>
+  <button id="btn-reenviar" class="ribbon-btn" disabled>➡️ Reenviar</button>
+  <div class="ribbon-sep"></div>
+  <button id="btn-eliminar" class="ribbon-btn" disabled title="No implementado en el simulador">🗑️ Eliminar</button>
+</div>
+
+<!-- ============ MAIN LAYOUT ============ -->
+<div class="main-layout">
+
+  <!-- FOLDER PANE -->
+  <nav class="folder-pane">
+    <button class="folder-item active" id="folder-inbox" data-folder="inbox">
+      <span class="folder-icon">📥</span>
+      <span class="folder-label">Bandeja de entrada</span>
+      <span class="folder-count" id="inbox-unread-count">0</span>
+    </button>
+    <button class="folder-item" id="folder-sent" data-folder="sent">
+      <span class="folder-icon">📤</span>
+      <span class="folder-label">Elementos enviados</span>
+      <span class="folder-count" id="sent-count">0</span>
+    </button>
+    <div class="folder-hint">
+      Simulador local — no envía correos reales.
+    </div>
+  </nav>
+
+  <!-- EMAIL LIST -->
+  <section class="email-list-pane">
+    <div class="email-list-header">
+      <span id="list-title">Bandeja de entrada</span>
+      <span class="email-list-subtitle" id="list-subtitle"></span>
+    </div>
+    <div class="email-list" id="email-list">
+      <!-- se rellena por JS: <div id="email-item-<id>"> -->
+    </div>
+  </section>
+
+  <!-- READING PANE -->
+  <section class="reading-pane" id="reading-pane">
+    <div class="reading-pane-empty" id="reading-pane-empty">
+      <div class="empty-icon">📧</div>
+      <p>Selecciona un correo para leerlo</p>
+    </div>
+
+    <div class="reading-pane-content" id="reading-pane-content" hidden>
+      <div class="rp-header">
+        <h2 class="rp-subject" id="rp-subject-display"></h2>
+        <div class="rp-meta">
+          <div class="rp-avatar" id="rp-avatar">?</div>
+          <div class="rp-meta-text">
+            <div class="rp-from-line">
+              <span class="rp-from-name" id="rp-from-name"></span>
+              <span class="rp-from-email" id="rp-from-email"></span>
+            </div>
+            <div class="rp-to-line">
+              Para: <span id="rp-to"></span>
+            </div>
+          </div>
+          <div class="rp-date" id="rp-date"></div>
+        </div>
+      </div>
+
+      <div class="rp-body" id="rp-body"></div>
+
+      <!-- Bloque de respuesta (oculto hasta pulsar Responder a todos) -->
+      <div class="reply-block" id="reply-block" hidden>
+        <div class="reply-block-header">
+          <span>Responder a todos</span>
+          <span class="reply-to-hint" id="reply-to-hint"></span>
+        </div>
+        <textarea id="reply-textbox" placeholder="Escribe tu respuesta..."></textarea>
+        <div class="reply-actions">
+          <button id="btn-enviar" class="ribbon-btn primary">Enviar</button>
+          <button id="btn-descartar-respuesta" class="ghost-btn">Descartar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Elemento oculto de compatibilidad: campos individuales usados por el robot -->
+    <div id="email-fields-compat" hidden>
+      <span id="rp-from-compat"></span>
+      <span id="rp-subject-compat"></span>
+      <span id="rp-body-compat"></span>
+    </div>
+  </section>
+</div>
+
+<!-- ============ MODAL: PANEL DE CASOS ============ -->
+<div class="modal-overlay" id="modal-overlay" hidden>
+  <div class="modal-panel">
+    <div class="modal-header">
+      <h3>Panel de casos — qué debería hacer el robot con cada correo</h3>
+      <button id="btn-cerrar-modal" class="ghost-btn">✕ Cerrar</button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <!-- se rellena por JS -->
+    </div>
+  </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div class="toast" id="toast" hidden></div>
+
+<script src="js/casos.js"></script>
+<script src="js/generador-caso2.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
