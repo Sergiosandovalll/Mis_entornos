@@ -132,7 +132,11 @@ function renderListaCorreos() {
 function crearFilaCorreo(correo) {
   const div = document.createElement("div");
   div.id = `email-item-${correo.id}`;
-  div.className = "email-item" + (correo.leido ? "" : " unread") + (correo.esMailerDaemon ? " mailer-daemon" : "");
+  // Nota: deliberadamente NO se añade ninguna clase que delate si el
+  // correo es mailer-daemon o no (ni color, ni badge) — el objetivo del
+  // simulador es comprobar si el robot lo identifica solo, sin pistas
+  // visuales. Esa información solo está disponible en el "Panel de casos".
+  div.className = "email-item" + (correo.leido ? "" : " unread");
   if (correo.id === idSeleccionado) div.classList.add("selected");
   div.dataset.emailId = correo.id;
 
@@ -149,11 +153,6 @@ function crearFilaCorreo(correo) {
       <div class="email-item-subject" id="email-subject-${correo.id}">${escapeHtml(correo.subject)}</div>
       <div class="email-item-preview">${escapeHtml(preview)}${correo.body.length > 90 ? "…" : ""}</div>
       <div id="email-body-${correo.id}" hidden>${escapeHtml(correo.body)}</div>
-      <div class="email-item-badges">
-        <span class="badge ${correo.esMailerDaemon ? "badge-md" : "badge-normal"}">
-          ${correo.esMailerDaemon ? "Caso 2 · Mailer-daemon" : "Control · No Caso 2"}
-        </span>
-      </div>
     </div>
   `;
 

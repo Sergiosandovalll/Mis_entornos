@@ -271,10 +271,6 @@ button {
   flex-shrink: 0;
 }
 
-.email-item.mailer-daemon .email-item-avatar {
-  background: var(--gris-texto-suave);
-}
-
 .email-item-main {
   flex: 1;
   min-width: 0;
@@ -320,30 +316,6 @@ button {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.email-item-badges {
-  margin-top: 4px;
-  display: flex;
-  gap: 4px;
-}
-
-.badge {
-  font-size: 10px;
-  padding: 1px 6px;
-  border-radius: 9px;
-  font-weight: 600;
-  letter-spacing: .2px;
-}
-
-.badge.badge-md {
-  background: #fde7e9;
-  color: var(--rojo-alerta);
-}
-
-.badge.badge-normal {
-  background: #e6f4ea;
-  color: var(--verde-ok);
 }
 
 .email-list-empty {

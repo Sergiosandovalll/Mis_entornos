@@ -48,8 +48,11 @@ Web`, tal y como espera el robot (identificación de ventana por título
   correo, Eliminar y Reenviar son solo decorativos en esta fase).
 - **Panel de carpetas**: Bandeja de entrada / Elementos enviados.
 - **Lista de correos** (columna central): remitente en negrita si no
-  está leído, asunto, vista previa y una etiqueta de color indicando si
-  es "Caso 2 · Mailer-daemon" o "Control · No Caso 2".
+  está leído, asunto y vista previa. **Deliberadamente no muestra ninguna
+  pista visual** (etiqueta, color de avatar, etc.) de qué caso es cada
+  correo — el objetivo es comprobar si el robot lo identifica solo. Esa
+  información solo está disponible en el "Panel de casos" (para tu propia
+  revisión, no para el robot).
 - **Panel de lectura** (derecha): remitente, destinatario, fecha y cuerpo
   completo del correo seleccionado, con el bloque de respuesta debajo del
   botón "Responder a todos".
@@ -66,8 +69,9 @@ pruebas sin arrastrar el estado anterior.
 
 ## 3. Cómo comprobar si el robot actuó bien (Caso 2)
 
-Para cada correo etiquetado **"Caso 2 · Mailer-daemon"**, lo correcto es
-que el robot:
+Para cada correo que en el **panel de casos** aparezca marcado como
+**"Caso 2 · Mailer-daemon"** (recuerda: esa etiqueta no se muestra en la
+bandeja, solo en el panel), lo correcto es que el robot:
 
 1. Lo detecte como mailer-daemon (remitente `mailer-daemon@...`,
    `postmaster@...`, o nombre de remitente tipo "Mail Delivery
@@ -78,9 +82,10 @@ que el robot:
 3. **No** busque al cliente en Persefone (no simulado en esta fase, pero
    es parte del criterio de éxito).
 
-Para los correos etiquetados **"Control · No Caso 2"**, lo correcto es
-que el robot **no los ignore ni los trate como mailer-daemon** — deberán
-gestionarse según el caso que les corresponda en fases futuras.
+Para los correos marcados como **"Sin caso (control)"** en el panel, lo
+correcto es que el robot **no los ignore ni los trate como
+mailer-daemon** — deberán gestionarse según el caso que les corresponda
+en fases futuras.
 
 Abre el **panel de casos** después de cada prueba para revisar, correo a
 correo, si el resultado en "Elementos enviados" coincide con lo esperado.
