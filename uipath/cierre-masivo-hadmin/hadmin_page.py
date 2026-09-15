@@ -23,6 +23,7 @@ pantalla de login (sesión no válida) en vez de a la operación buscada:
 aviso claro, en vez de agotar cada operación con un timeout de 30s
 esperando una caja de búsqueda que nunca va a aparecer.
 """
+import re
 import time
 
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
@@ -113,6 +114,51 @@ def hay_resultado(page, hp):
 
 def abrir_resultado(page, hp):
     hay_resultado(page, hp).click()
+
+
+def analista_en_resultado(page, hp):
+    """Lee 'Analista: Nombre Completo' tal como aparece en la fila de
+    resultado de la búsqueda (antes de abrir la ficha). Sube desde el
+    link del HP hasta el ancestro más cercano que contenga el texto
+    'Analista' en su subárbol - así no hace falta un selector exacto
+    para la fila/tarjeta del resultado, y aguanta cambios de maquetado
+    mientras el HP y el "Analista: ..." sigan en el mismo bloque.
+    Devuelve None si no se encuentra el texto 'Analista:' en esa fila."""
+    fila = hay_resultado(page, hp).first.locator(
+        "xpath=ancestor::*[.//text()[contains(., 'Analista')]][1]"
+    )
+    texto = fila.inner_text()
+    m = re.search(r"Analista:\s*(.+)", texto)
+    return m.group(1).strip() if m else None
+
+
+def reabrir_operacion(page):
+    """Pulsa 'Reabrir' en la caja azul de "Causa de cierre" de una ficha
+    cerrada, y verifica que la operación quedó reabierta de verdad.
+
+    No se sabe si tras pulsar aparece un diálogo de confirmación (no se
+    ha visto ese caso todavía) - si aparece uno, NO se adivina qué botón
+    pulsar: se lanza un error explícito para completarlo con un caso
+    real en vez de arriesgar un clic a ciegas sobre algo desconocido."""
+    boton = page.get_by_role("button", name="Reabrir", exact=True)
+    boton.wait_for(state="visible", timeout=8000)
+    boton.click()
+
+    dialogo = page.get_by_role("dialog")
+    try:
+        dialogo.wait_for(state="visible", timeout=3000)
+        raise RuntimeError(
+            "Apareció un diálogo tras pulsar 'Reabrir' que no se esperaba. "
+            "No se ha confirmado nada a ciegas: hace falta ver ese diálogo "
+            "(captura) para completar reabrir_operacion() con el caso real."
+        )
+    except PlaywrightTimeoutError:
+        pass  # no apareció diálogo: se asume que reabrió directo
+
+    # La caja de "Causa de cierre" debe desaparecer si de verdad se reabrió.
+    page.get_by_text("Causa de cierre:", exact=False).wait_for(
+        state="hidden", timeout=8000
+    )
 
 
 def click_finalizar(page):
