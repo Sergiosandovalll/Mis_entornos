@@ -62,34 +62,37 @@ def leer_operaciones(csv_path):
     return operaciones, duplicados
 
 
-def ultimo_log():
-    logs = sorted(glob.glob(os.path.join(LOGS_DIR, "resultado_cierre_*.csv")))
-    return logs[-1] if logs else None
+def todos_los_logs():
+    return sorted(glob.glob(os.path.join(LOGS_DIR, "resultado_cierre_*.csv")))
 
 
 def preguntar_reanudar():
-    log = ultimo_log()
-    if not log:
+    logs = todos_los_logs()
+    if not logs:
         return False
     respuesta = input(
-        f"Se encontró un log anterior ({log}). "
-        "¿Continuar desde ahí y omitir las operaciones ya marcadas 'ok', "
-        "o empezar de cero? [continuar/cero]: "
+        f"Se encontraron {len(logs)} log(s) anterior(es) en '{LOGS_DIR}/'. "
+        "¿Continuar y omitir TODAS las operaciones que en cualquiera de esos "
+        "logs ya quedaron marcadas 'ok', o empezar de cero? [continuar/cero]: "
     ).strip().lower()
     return respuesta.startswith("cont")
 
 
 def cargar_ya_ok(reanudar):
+    """Suma el 'ok' de TODOS los logs anteriores (no solo el más reciente):
+    cada ejecución crea un log nuevo, así que mirar solo el último perdía de
+    vista los cierres reales de tandas previas en cuanto había más de un log
+    en logs/."""
     if not reanudar:
         return set()
-    log = ultimo_log()
     ok = set()
-    with open(log, newline="", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        for fila in reader:
-            if fila.get("estado") == "ok":
-                ok.add(fila.get("id_operacion"))
-    print(f"Reanudando: {len(ok)} operaciones ya cerradas en '{log}' se omitirán.")
+    for log in todos_los_logs():
+        with open(log, newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for fila in reader:
+                if fila.get("estado") == "ok":
+                    ok.add(fila.get("id_operacion"))
+    print(f"Reanudando: {len(ok)} operaciones ya cerradas (sumando {len(todos_los_logs())} log(s) anteriores) se omitirán.")
     return ok
 
 
