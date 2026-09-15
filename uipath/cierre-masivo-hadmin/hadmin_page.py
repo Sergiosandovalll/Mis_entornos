@@ -42,10 +42,17 @@ def click_texto_visible(page, texto, exact=True, timeout=5000):
     exacto de clic, aunque a simple vista no se vea nada raro. En ese
     caso el clic "de ratón" normal de Playwright queda bloqueado con
     "intercepts pointer events" indefinidamente (hasta el timeout de 30s
-    por defecto). Como fallback, se dispara el evento click directamente
-    sobre el elemento vía JS (sin simular la posición del ratón), que
-    activa el mismo manejador onClick sin depender de qué haya "encima"
-    en ese píxel."""
+    por defecto).
+
+    Como fallback se reintenta con force=True: sigue siendo un clic de
+    ratón real (dispara mousedown/mouseup/click de verdad en esa
+    posición), solo que sin la comprobación previa de "¿hay algo
+    encima?". Es importante que sea un clic real y no un `el.click()`
+    por JS: los desplegables de Ant Design seleccionan la opción al
+    `mousedown`, no al `click`, así que un `el.click()` sintético no
+    activa la selección aunque no dé ningún error (se probó y fallaba
+    en silencio: el desplegable se abría pero no quedaba nada
+    seleccionado)."""
     locator = page.get_by_text(texto, exact=exact)
     limite = time.time() + timeout / 1000
     while time.time() < limite:
@@ -55,7 +62,7 @@ def click_texto_visible(page, texto, exact=True, timeout=5000):
                 try:
                     candidato.click(timeout=2000)
                 except PlaywrightTimeoutError:
-                    candidato.evaluate("el => el.click()")
+                    candidato.click(timeout=2000, force=True)
                 return
         page.wait_for_timeout(100)
     raise PlaywrightTimeoutError(f"No se encontró un elemento visible con texto '{texto}'")
@@ -132,11 +139,24 @@ def seleccionar_solicitante_gibobs(page):
 def seleccionar_motivo(page, motivo):
     """El desplegable de Motivo solo existe una vez elegido el solicitante
     "Por solicitud de Gibobs". Se abre haciendo clic en su placeholder
-    ("Seleccione") y se elige la opción por su texto."""
+    ("Seleccione") y se elige la opción por su texto.
+
+    A esta altura del formulario, "Cerrar tareas" y "Solicitante" ya están
+    rellenos, así que el único "Seleccione" que debería quedar en el
+    diálogo es el de Motivos. Se comprueba tras el clic que ha
+    desaparecido: si sigue ahí, el clic no llegó a seleccionar nada de
+    verdad (visto en la práctica: el desplegable se abre pero no marca
+    ninguna opción) y se lanza un error en vez de seguir como si nada."""
     page.get_by_text("Seleccione").click()
     page.wait_for_timeout(300)
     click_texto_visible(page, motivo, exact=True)
     page.wait_for_timeout(300)
+
+    if page.get_by_text("Seleccione", exact=True).count() > 0:
+        raise PlaywrightTimeoutError(
+            f"El motivo '{motivo}' no quedó seleccionado: el desplegable "
+            "sigue mostrando el placeholder 'Seleccione'"
+        )
 
 
 def rellenar_contenido(page, dialogo, texto):
@@ -149,8 +169,15 @@ def rellenar_contenido(page, dialogo, texto):
 
 
 def confirmar_cierre(page, dialogo):
-    """Pulsa 'Cerrar' en el modal: aplica el cierre real."""
+    """Pulsa 'Cerrar' en el modal: aplica el cierre real.
+
+    Comprueba que el diálogo se cierra de verdad tras el clic. Si algún
+    campo quedó mal relleno (por ejemplo el motivo, ver
+    `seleccionar_motivo`), Hadmin puede bloquear el envío con una
+    validación y dejar el modal abierto; sin esta comprobación eso se
+    hubiera reportado igualmente como "ok"."""
     dialogo.get_by_role("button", name="Cerrar", exact=True).click()
+    dialogo.wait_for(state="hidden", timeout=5000)
 
 
 def cancelar_modal(page, dialogo):
