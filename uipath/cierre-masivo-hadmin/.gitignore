@@ -1,0 +1,18 @@
+# Sesión guardada (cookies + token de acceso) - NUNCA se sube a git
+storage_state.json
+
+# Datos reales de operaciones (HPs de clientes)
+operaciones.csv
+
+# Logs de resultados de ejecuciones reales (contienen HPs reales)
+logs/
+
+# Capturas de depuración: pueden contener datos personales del cliente
+# (nombre, teléfono, email) visibles en la ficha de la operación
+debug/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
