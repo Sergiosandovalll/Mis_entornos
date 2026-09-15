@@ -16,6 +16,12 @@ o similar) y termina en TimeoutError. Cuando pasa, `procesar_operacion`
 lo captura, lo registra como "error" en el log y sigue con la siguiente
 operación sin tocar nada - basta con relanzar el robot para que la
 reanudación reintente solo esas operaciones fallidas.
+
+`pagina_es_login` detecta cuando Hadmin ha devuelto al usuario a la
+pantalla de login (sesión no válida) en vez de a la operación buscada:
+`robot_cierre_hadmin.py` la usa para cortar el lote al instante con un
+aviso claro, en vez de agotar cada operación con un timeout de 30s
+esperando una caja de búsqueda que nunca va a aparecer.
 """
 import time
 
@@ -40,6 +46,21 @@ def click_texto_visible(page, texto, exact=True, timeout=5000):
                 return
         page.wait_for_timeout(100)
     raise PlaywrightTimeoutError(f"No se encontró un elemento visible con texto '{texto}'")
+
+
+def pagina_es_login(page, timeout=2500):
+    """Detecta si la página actual es la pantalla de login de Gibobs
+    ("Usuario" / "Contraseña" / "Acceder con gibobs") en vez del panel de
+    Hadmin. Se usa como comprobación rápida antes de intentar buscar, para
+    no esperar 30s por una caja de búsqueda que nunca va a aparecer si la
+    sesión no es válida."""
+    try:
+        page.get_by_role("button", name="Acceder con gibobs").wait_for(
+            state="visible", timeout=timeout
+        )
+        return True
+    except PlaywrightTimeoutError:
+        return False
 
 
 def buscar_operacion(page, hp):

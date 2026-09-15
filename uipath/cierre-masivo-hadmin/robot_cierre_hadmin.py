@@ -33,6 +33,8 @@ CONTENIDO_DEFAULT = (
     "Acción puntual Stock de Allbanks"
 )
 
+SESION_EXPIRADA = "SESION_EXPIRADA"
+
 
 def leer_operaciones(csv_path):
     """Lee el CSV de entrada. Devuelve (operaciones, duplicados) deduplicando
@@ -125,6 +127,15 @@ def procesar_operacion(page, hp, motivo, contenido, produccion):
     """
     try:
         page.goto(HADMIN_URL)  # estado limpio: sin restos de la operación anterior
+
+        if hp_page.pagina_es_login(page):
+            captura(page, hp, "00_sesion_expirada")
+            return "error", (
+                f"{SESION_EXPIRADA}: Hadmin devolvió la pantalla de login en vez del "
+                f"panel (url: {page.url}). Ejecuta 'python auth_setup.py' y vuelve a "
+                "lanzar el robot: retomará donde se quedó."
+            )
+
         hp_page.buscar_operacion(page, hp)
 
         resultado = hp_page.hay_resultado(page, hp)
@@ -166,7 +177,11 @@ def procesar_operacion(page, hp, motivo, contenido, produccion):
 
     except Exception as exc:
         captura(page, hp, "99_error")
-        return "error", str(exc)
+        try:
+            url_actual = page.url
+        except Exception:
+            url_actual = "?"
+        return "error", f"{exc} (url: {url_actual})"
 
 
 def main():
@@ -193,10 +208,22 @@ def main():
 
     log_path = nombre_log()
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=args.headless)
+        # "--headless=new" evita el modo headless antiguo de Chromium, cuya
+        # huella (user-agent, etc.) Hadmin no reconocía como sesión válida y
+        # nos devolvía siempre al login aunque storage_state.json fuera
+        # correcto. En modo visible este flag no se aplica (se ignora).
+        launch_args = ["--headless=new"] if args.headless else []
+        browser = p.chromium.launch(headless=args.headless, args=launch_args)
         context = browser.new_context(storage_state=STORAGE_STATE_PATH)
         page = context.new_page()
         page.goto(HADMIN_URL)
+
+        if hp_page.pagina_es_login(page):
+            browser.close()
+            sys.exit(
+                "La sesión guardada no es válida (Hadmin muestra el login). "
+                "Ejecuta 'python auth_setup.py' e inténtalo de nuevo."
+            )
 
         with open(log_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
@@ -215,6 +242,14 @@ def main():
                 )
                 writer.writerow([hp, estado, detalle])
                 f.flush()
+
+                if detalle.startswith(SESION_EXPIRADA):
+                    print(
+                        f"\n⚠ Sesión caducada a mitad de la tanda ({idx}/{total}). "
+                        "Ejecuta 'python auth_setup.py' y vuelve a lanzar el robot: "
+                        "retomará justo donde se quedó."
+                    )
+                    break
 
                 transcurrido = time.time() - inicio
                 promedio = transcurrido / idx
