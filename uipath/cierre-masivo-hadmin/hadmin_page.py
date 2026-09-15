@@ -35,14 +35,27 @@ def click_texto_visible(page, texto, exact=True, timeout=5000):
     visible. Algunos desplegables de Hadmin dejan momentáneamente un nodo
     duplicado (oculto) con el mismo texto mientras se abren/cierran, así
     que en vez de adivinar un índice fijo (nth), se espera activamente a
-    que aparezca una opción visible y se hace clic en esa."""
+    que aparezca una opción visible y se hace clic en esa.
+
+    Ant Design a veces deja ese duplicado técnicamente "visible" (no
+    display:none) pero tapado por el layout del formulario en el punto
+    exacto de clic, aunque a simple vista no se vea nada raro. En ese
+    caso el clic "de ratón" normal de Playwright queda bloqueado con
+    "intercepts pointer events" indefinidamente (hasta el timeout de 30s
+    por defecto). Como fallback, se dispara el evento click directamente
+    sobre el elemento vía JS (sin simular la posición del ratón), que
+    activa el mismo manejador onClick sin depender de qué haya "encima"
+    en ese píxel."""
     locator = page.get_by_text(texto, exact=exact)
     limite = time.time() + timeout / 1000
     while time.time() < limite:
         for i in range(locator.count()):
             candidato = locator.nth(i)
             if candidato.is_visible():
-                candidato.click()
+                try:
+                    candidato.click(timeout=2000)
+                except PlaywrightTimeoutError:
+                    candidato.evaluate("el => el.click()")
                 return
         page.wait_for_timeout(100)
     raise PlaywrightTimeoutError(f"No se encontró un elemento visible con texto '{texto}'")
