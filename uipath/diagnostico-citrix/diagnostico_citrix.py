@@ -6,7 +6,7 @@ Citrix? Esto determina si se puede automatizar por selectores reales
 imagen/coordenadas de pantalla, mucho más frágil.
 
 Uso:
-    1. Instala pywinauto:  pip install -r requirements.txt
+    1. Instala pywinauto:  pip install pywinauto
     2. Deja la ventana de la app de Citrix (el webmail) ABIERTA y
        enfocada (haz clic en ella para que esté en primer plano).
     3. Ejecuta:  python diagnostico_citrix.py
@@ -17,6 +17,7 @@ Uso:
 import sys
 
 from pywinauto import Desktop
+from pywinauto.application import Application
 
 
 def main():
@@ -35,11 +36,18 @@ def main():
 
     print("\nEscribe el número de la ventana de Citrix/webmail a inspeccionar:")
     idx = int(input("> ").strip())
-    ventana = ventanas[idx]
+    handle = ventanas[idx].handle
 
-    print(f"\nInspeccionando: {ventana.window_text()!r}\n" + "-" * 60)
+    # Desktop().windows() devuelve wrappers "sueltos" que en algunas
+    # versiones de pywinauto no traen print_control_identifiers. Nos
+    # conectamos a la ventana por su handle para obtener el objeto
+    # correcto (WindowSpecification) que sí lo tiene.
+    app = Application(backend="uia").connect(handle=handle)
+    dlg = app.window(handle=handle)
+
+    print(f"\nInspeccionando: {dlg.window_text()!r}\n" + "-" * 60)
     try:
-        ventana.print_control_identifiers(depth=4)
+        dlg.print_control_identifiers(depth=4)
     except Exception as e:
         print(f"No se pudo leer el árbol de controles: {e}")
         print(
