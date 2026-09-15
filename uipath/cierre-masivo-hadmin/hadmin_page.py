@@ -50,13 +50,22 @@ def click_texto_visible(page, texto, exact=True, timeout=5000):
     encima?". Es importante que sea un clic real y no un `el.click()`
     por JS: los desplegables de Ant Design seleccionan la opción al
     `mousedown`, no al `click`, así que un `el.click()` sintético no
-    activa la selección aunque no dé ningún error (se probó y fallaba
-    en silencio: el desplegable se abría pero no quedaba nada
-    seleccionado)."""
+    activa la selección aunque no dé ningún error.
+
+    Comprobado en la práctica: ni el clic normal ni el force=True
+    seleccionaban nada, siempre (no de forma intermitente) - señal de
+    que se estaba haciendo clic en el nodo equivocado siempre, no de un
+    bloqueo puntual. Los paneles flotantes de Ant Design (desplegables)
+    se insertan mediante un portal al final del <body>, así que si hay
+    un nodo duplicado/fantasma con el mismo texto, lo normal es que
+    quede ANTES en el documento y el real (el que se ve en pantalla,
+    dentro del desplegable abierto) sea el ÚLTIMO. Por eso se recorre en
+    orden inverso: se prueba primero el último visible, no el primero."""
     locator = page.get_by_text(texto, exact=exact)
     limite = time.time() + timeout / 1000
     while time.time() < limite:
-        for i in range(locator.count()):
+        total = locator.count()
+        for i in reversed(range(total)):
             candidato = locator.nth(i)
             if candidato.is_visible():
                 try:
