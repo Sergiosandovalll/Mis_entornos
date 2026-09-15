@@ -82,7 +82,12 @@ def cargar_ya_ok(reanudar):
     """Suma el 'ok' de TODOS los logs anteriores (no solo el más reciente):
     cada ejecución crea un log nuevo, así que mirar solo el último perdía de
     vista los cierres reales de tandas previas en cuanto había más de un log
-    en logs/."""
+    en logs/.
+
+    Solo cuentan los cierres REALES ("Cerrada correctamente", de una
+    ejecución --produccion). Un "ok" de dry-run ("[DRY-RUN] Formulario
+    verificado...") no cierra nada en Hadmin, así que no debe hacer que
+    esa operación se salte en la siguiente tanda de producción."""
     if not reanudar:
         return set()
     ok = set()
@@ -90,9 +95,9 @@ def cargar_ya_ok(reanudar):
         with open(log, newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for fila in reader:
-                if fila.get("estado") == "ok":
+                if fila.get("estado") == "ok" and not (fila.get("detalle") or "").startswith("[DRY-RUN]"):
                     ok.add(fila.get("id_operacion"))
-    print(f"Reanudando: {len(ok)} operaciones ya cerradas (sumando {len(todos_los_logs())} log(s) anteriores) se omitirán.")
+    print(f"Reanudando: {len(ok)} operaciones cerradas de verdad (sumando {len(todos_los_logs())} log(s) anteriores) se omitirán.")
     return ok
 
 
