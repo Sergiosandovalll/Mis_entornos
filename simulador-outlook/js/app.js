@@ -22,6 +22,12 @@ let siguienteId = 1;
 let idSeleccionado = null;
 let carpetaActual = "inbox"; // "inbox" | "sent"
 
+// Llegada automática de correos nuevos (simula un buzón vivo)
+let llegadaAutomaticaActiva = true;
+let idTimeoutLlegada = null;
+const LLEGADA_MIN_MS = 8000;  // ~10s de media, con variación natural
+const LLEGADA_MAX_MS = 13000;
+
 // ---------------------------------------------------------------------------
 // Inicialización
 // ---------------------------------------------------------------------------
@@ -29,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
   poblarBandejaCaso2();
   render();
   vincularEventos();
+  programarProximaLlegada();
 });
 
 function poblarBandejaCaso2() {
@@ -42,6 +49,7 @@ function poblarBandejaCaso2() {
 }
 
 function resetearBandeja() {
+  detenerLlegadasAutomaticas();
   bandejaEntrada = [];
   elementosEnviados = [];
   idSeleccionado = null;
@@ -50,6 +58,49 @@ function resetearBandeja() {
   carpetaActual = "inbox";
   render();
   mostrarToast("Bandeja regenerada con un nuevo lote de correos del Caso 2.");
+  programarProximaLlegada();
+}
+
+// ---------------------------------------------------------------------------
+// Llegada automática de correos (simula un buzón en tiempo real)
+// ---------------------------------------------------------------------------
+function programarProximaLlegada() {
+  if (!llegadaAutomaticaActiva) return;
+  const espera = LLEGADA_MIN_MS + Math.random() * (LLEGADA_MAX_MS - LLEGADA_MIN_MS);
+  idTimeoutLlegada = setTimeout(() => {
+    recibirCorreoNuevo();
+    programarProximaLlegada();
+  }, espera);
+}
+
+function detenerLlegadasAutomaticas() {
+  if (idTimeoutLlegada !== null) {
+    clearTimeout(idTimeoutLlegada);
+    idTimeoutLlegada = null;
+  }
+}
+
+function recibirCorreoNuevo() {
+  const nuevo = generarCorreoAleatorioUnico();
+  bandejaEntrada.unshift({
+    ...nuevo,
+    id: siguienteId++,
+    leido: false,
+  });
+  render();
+  mostrarToast("📩 Ha llegado un correo nuevo en la bandeja de entrada.");
+}
+
+function alternarLlegadasAutomaticas() {
+  llegadaAutomaticaActiva = !llegadaAutomaticaActiva;
+  const btn = document.getElementById("btn-auto-llegada");
+  if (llegadaAutomaticaActiva) {
+    btn.textContent = "⏸ Pausar llegada automática";
+    programarProximaLlegada();
+  } else {
+    btn.textContent = "▶ Reanudar llegada automática";
+    detenerLlegadasAutomaticas();
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -60,6 +111,8 @@ function vincularEventos() {
   document.getElementById("folder-sent").addEventListener("click", () => cambiarCarpeta("sent"));
 
   document.getElementById("btn-reset-bandeja").addEventListener("click", resetearBandeja);
+  document.getElementById("btn-auto-llegada").addEventListener("click", alternarLlegadasAutomaticas);
+  document.getElementById("btn-marcar-leido").addEventListener("click", alternarLeidoSeleccionado);
 
   document.getElementById("btn-panel-casos").addEventListener("click", abrirModalCasos);
   document.getElementById("btn-cerrar-modal").addEventListener("click", cerrarModalCasos);
@@ -144,7 +197,7 @@ function crearFilaCorreo(correo) {
   const preview = correo.body.replace(/\s+/g, " ").trim().slice(0, 90);
 
   div.innerHTML = `
-    <div class="email-item-avatar">${inicial}</div>
+    <div class="email-item-avatar" id="email-avatar-${correo.id}" title="${correo.leido ? "Marcar como no leído" : "Marcar como leído"}">${inicial}</div>
     <div class="email-item-main">
       <div class="email-item-top">
         <span class="email-item-from" id="email-from-${correo.id}">${escapeHtml(correo.fromName)} &lt;${escapeHtml(correo.from)}&gt;</span>
@@ -157,6 +210,9 @@ function crearFilaCorreo(correo) {
   `;
 
   div.addEventListener("click", () => seleccionarCorreo(correo.id));
+  div.querySelector(`#email-avatar-${correo.id}`).addEventListener("click", (evt) => {
+    alternarLeidoCorreo(correo.id, evt);
+  });
   return div;
 }
 
@@ -187,6 +243,28 @@ function seleccionarCorreo(id) {
   render();
 }
 
+/**
+ * Alterna el estado leído/no leído de un correo sin abrirlo ni cambiar
+ * la selección actual (igual que al hacer clic en el círculo/avatar de
+ * un correo en Outlook real).
+ */
+function alternarLeidoCorreo(id, evt) {
+  if (evt) evt.stopPropagation();
+  const correo = bandejaEntrada.find((c) => c.id === id);
+  if (!correo) return;
+  correo.leido = !correo.leido;
+  render();
+}
+
+/**
+ * Alterna el estado leído/no leído del correo actualmente abierto en el
+ * panel de lectura (botón "Marcar como leído / no leído" de la cinta).
+ */
+function alternarLeidoSeleccionado() {
+  if (idSeleccionado === null) return;
+  alternarLeidoCorreo(idSeleccionado);
+}
+
 // ---------------------------------------------------------------------------
 // Panel de lectura
 // ---------------------------------------------------------------------------
@@ -201,6 +279,7 @@ function renderPanelLectura() {
   const btnResponder = document.getElementById("btn-responder");
   const btnResponderTodos = document.getElementById("btn-responder-todos");
   const btnReenviar = document.getElementById("btn-reenviar");
+  const btnMarcarLeido = document.getElementById("btn-marcar-leido");
 
   if (!correo) {
     vacio.hidden = false;
@@ -208,6 +287,8 @@ function renderPanelLectura() {
     btnResponder.disabled = true;
     btnResponderTodos.disabled = true;
     btnReenviar.disabled = true;
+    btnMarcarLeido.disabled = true;
+    btnMarcarLeido.textContent = "📖 Marcar como leído";
     return;
   }
 
@@ -216,6 +297,8 @@ function renderPanelLectura() {
   btnResponder.disabled = false;
   btnResponderTodos.disabled = false;
   btnReenviar.disabled = false;
+  btnMarcarLeido.disabled = false;
+  btnMarcarLeido.textContent = correo.leido ? "📩 Marcar como no leído" : "📖 Marcar como leído";
 
   document.getElementById("rp-subject-display").textContent = correo.subject;
   document.getElementById("rp-avatar").textContent = (correo.fromName || correo.from || "?").trim().charAt(0).toUpperCase();

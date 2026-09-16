@@ -13,9 +13,10 @@ resto de los 13 casos del flujo quedan como estructura de datos preparada
 
 ## 1. Cómo arrancarlo
 
-No requiere instalación de dependencias. Basta un servidor estático local
-(no se puede abrir con `file://` directamente por restricciones de módulos
-en algunos navegadores, así que usa siempre `http://localhost`).
+No requiere instalación de dependencias. Puedes abrir `index.html`
+directamente con doble clic (funciona vía `file://`), pero para probar el
+robot de UiPath contra la interfaz es mejor levantar un servidor local y
+usar siempre `http://localhost`.
 
 Desde la carpeta `simulador-outlook/`:
 
@@ -42,10 +43,12 @@ Web`, tal y como espera el robot (identificación de ventana por título
 
 ## 2. Qué verás
 
-- **Barra superior**: nombre del buzón simulado, botón para abrir el
+- **Barra superior**: nombre del buzón simulado, botón para **pausar/
+  reanudar la llegada automática de correos**, botón para abrir el
   **panel de casos** y botón para **regenerar la bandeja**.
-- **Cinta de acciones**: Responder, Responder a todos, Reenviar (Nuevo
-  correo, Eliminar y Reenviar son solo decorativos en esta fase).
+- **Cinta de acciones**: Responder, Responder a todos, Reenviar, **Marcar
+  como leído / no leído** (Nuevo correo, Eliminar y Reenviar son solo
+  decorativos en esta fase).
 - **Panel de carpetas**: Bandeja de entrada / Elementos enviados.
 - **Lista de correos** (columna central): remitente en negrita si no
   está leído, asunto y vista previa. **Deliberadamente no muestra ninguna
@@ -64,6 +67,32 @@ Al pulsar **"🔄 Generar más / Resetear bandeja"** se vacía la bandeja de
 entrada y la de enviados, y se genera un nuevo lote aleatorio de correos
 del Caso 2 (8-10 mailer-daemon + 2-3 de control), para poder repetir
 pruebas sin arrastrar el estado anterior.
+
+### Marcar / desmarcar como leído
+
+Igual que en Outlook real, hay dos formas:
+
+1. **Clic en el avatar/círculo** de un correo en la lista — alterna su
+   estado leído/no leído sin abrirlo ni cambiar la selección actual.
+2. Con un correo abierto en el panel de lectura, el botón de la cinta
+   **"📖 Marcar como leído" / "📩 Marcar como no leído"** alterna el
+   estado del correo que estás viendo.
+
+### Llegada automática de correos nuevos
+
+Mientras el simulador está abierto, llega un correo nuevo a la bandeja
+de entrada cada **8-13 segundos aproximadamente** (variación aleatoria
+alrededor de ~10s, para que no sea un patrón perfectamente regular). El
+correo nuevo se genera con las mismas plantillas del Caso 2 (~75% de
+probabilidad de ser mailer-daemon, ~25% de ser un correo de control),
+aparece sin leer arriba de la lista, y se muestra un aviso ("toast") en
+pantalla.
+
+Usa el botón **"⏸ Pausar llegada automática"** (en la barra superior)
+para detenerla — por ejemplo, si quieres dejar la bandeja estable
+mientras inspeccionas algo — y **"▶ Reanudar llegada automática"** para
+retomarla. Al pulsar "Resetear bandeja" la llegada automática se
+reinicia limpia (sin arrastrar el temporizador anterior).
 
 ---
 
@@ -119,6 +148,9 @@ selectores:
 | Carpeta Bandeja de entrada / Enviados | `folder-inbox` / `folder-sent` | Botones de navegación entre carpetas |
 | Botón resetear bandeja | `btn-reset-bandeja` | Regenera el lote de correos de prueba |
 | Botón panel de casos | `btn-panel-casos` | Abre el modal con la tabla de casos esperados |
+| Avatar/círculo de un correo (alterna leído/no leído) | `email-avatar-<id>` | Clicable; no abre el correo, solo alterna su estado |
+| Botón "Marcar como leído / no leído" | `btn-marcar-leido` | Actúa sobre el correo abierto en el panel de lectura |
+| Botón pausar/reanudar llegada automática | `btn-auto-llegada` | Alterna la simulación de correos nuevos cada ~10s |
 
 > Nota: `email-body-<id>` está oculto visualmente (`hidden`) en la fila
 > de la lista para no romper el diseño, pero su contenido es accesible

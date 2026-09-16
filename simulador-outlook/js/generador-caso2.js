@@ -222,6 +222,54 @@ function _fechaAleatoriaReciente() {
 }
 
 /**
+ * Genera UN único correo aleatorio (mailer-daemon con más probabilidad
+ * que de control), para simular la llegada de un correo nuevo en la
+ * bandeja mientras el simulador está abierto.
+ *
+ * @returns {Object} correo sin id asignado todavía
+ */
+function generarCorreoAleatorioUnico() {
+  const esMailerDaemon = Math.random() < 0.75; // ~75% mailer-daemon, ~25% control
+
+  if (esMailerDaemon) {
+    const remitente = MD_REMITENTES[Math.floor(Math.random() * MD_REMITENTES.length)];
+    const asunto = MD_ASUNTOS[Math.floor(Math.random() * MD_ASUNTOS.length)];
+    const cuerpoFn = MD_CUERPOS[Math.floor(Math.random() * MD_CUERPOS.length)];
+    const destino = MD_DESTINOS_FALLIDOS[Math.floor(Math.random() * MD_DESTINOS_FALLIDOS.length)];
+
+    return {
+      from: remitente.email,
+      fromName: remitente.nombre,
+      to: "portalhipotecas@bancsabadell.com",
+      subject: asunto,
+      body: cuerpoFn(destino),
+      fecha: new Date(),
+      caso: 2,
+      esMailerDaemon: true,
+      comportamientoEsperado:
+        "NO responder. No debe aparecer nada en Enviados para este " +
+        "correo, y tampoco se debe buscar ningún cliente en Persefone.",
+    };
+  }
+
+  const control = CONTROL_NO_MD[Math.floor(Math.random() * CONTROL_NO_MD.length)];
+  return {
+    from: control.from,
+    fromName: control.fromName,
+    to: "portalhipotecas@bancsabadell.com",
+    subject: control.subject,
+    body: control.body,
+    fecha: new Date(),
+    caso: null,
+    esMailerDaemon: false,
+    comportamientoEsperado:
+      "Correo de control (NO es Caso 2). No debe ser ignorado ni " +
+      "tratado como mailer-daemon; en fases futuras se gestionará " +
+      "según el caso que le corresponda.",
+  };
+}
+
+/**
  * Genera un lote de correos de prueba del Caso 2 (mailer-daemon) mezclado
  * con 2-3 correos de control que no son mailer-daemon.
  *
