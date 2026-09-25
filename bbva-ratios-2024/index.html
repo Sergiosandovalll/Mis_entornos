@@ -84,15 +84,15 @@ button{font:500 13px var(--sans);background:transparent;color:var(--accent);bord
   <div class="kpi">
     <div class="eyebrow">ROE</div>
     <div class="val" id="k-roe">–</div>
-    <div class="formula">Resultado atribuido / Patrimonio neto medio</div>
-    <span class="chip" id="c-roe">Oficial: 18,9 %</span>
-    <p class="read">Rentabilidad sobre los recursos de los accionistas. La cifra oficial usa fondos propios medios ± otro resultado global, sin minoritarios; por eso sale más alta que este cálculo simplificado.</p>
+    <div class="formula">Resultado atribuido / (Fondos propios medios + Otro resultado global acumulado medio)</div>
+    <span class="chip ok" id="c-roe">Oficial: 18,9 %</span>
+    <p class="read">Rentabilidad sobre los recursos de los accionistas: 10.054 / (69.703 − 16.412). Los saldos medios son la media ponderada de los cierres de cada mes, como los calcula BBVA.</p>
   </div>
   <div class="kpi">
     <div class="eyebrow">Tasa de mora</div>
     <div class="val" id="k-mora">–</div>
-    <div class="formula">Riesgos dudosos / Riesgo crediticio total</div>
-    <span class="chip warn" id="c-mora">Oficial: 3,0 % (2023: 3,4 %)</span>
+    <div class="formula">Riesgos dudosos / Riesgo crediticio (14.839 / 488.302)</div>
+    <span class="chip ok" id="c-mora">Oficial: 3,0 % (2023: 3,4 %)</span>
     <p class="read">Peso de los préstamos impagados sobre el total. Bajó en 2024 (3,4 % → 3,0 %), aunque el coste de riesgo subió del 1,15 % al 1,43 %.</p>
   </div>
 </div>
@@ -128,13 +128,13 @@ button{font:500 13px var(--sans);background:transparent;color:var(--accent);bord
 <section class="panel">
   <h2>Balance y riesgo</h2>
   <table>
-    <tr><td>Patrimonio neto 31-12-2023</td><td><input id="pn23" type="number" value="55265"></td></tr>
-    <tr><td>Patrimonio neto 31-12-2024</td><td><input id="pn24" type="number" value="60014"></td></tr>
-    <tr class="sub"><td>Patrimonio neto medio</td><td class="out" id="o-pnm"></td></tr>
-    <tr><td>Riesgo crediticio total <sup>*</sup></td><td><input id="riesgo" type="number" value="424087"></td></tr>
-    <tr><td>Riesgos dudosos <sup>*</sup></td><td><input id="dudosos" type="number" value="12723"></td></tr>
+    <tr><td>Fondos propios medios 2024</td><td><input id="fpm" type="number" value="69703"></td></tr>
+    <tr><td>+ Otro resultado global acumulado medio</td><td><input id="orga" type="number" value="-16412"></td></tr>
+    <tr class="sub"><td>Denominador del ROE</td><td class="out" id="o-pnm"></td></tr>
+    <tr><td>Riesgo crediticio 31-12-2024</td><td><input id="riesgo" type="number" value="488302"></td></tr>
+    <tr><td>Riesgos dudosos 31-12-2024</td><td><input id="dudosos" type="number" value="14839"></td></tr>
   </table>
-  <p class="note"><sup>*</sup> El informe resumen solo da la tasa de mora (3,0 %), no los saldos. Aquí se usan los préstamos y anticipos a la clientela brutos (424.087) como base y los dudosos implícitos (3,0 % × 424.087 ≈ 12.723). Sustitúyelos por los saldos de riesgo crediticio y dudosos del Informe de Gestión si los tienes.</p>
+  <p class="note">Cifras oficiales del Informe Trimestral 4T24 de BBVA, apartado «Medidas alternativas de rendimiento (MAR)». En 2023: fondos propios medios 65.907, otro resultado global medio −16.437, dudosos 15.305 y riesgo crediticio 448.840.</p>
   <button type="button" id="reset">Restaurar cifras oficiales</button>
   <div class="cmp">
     <div><b class="num">1,43 %</b><span>Coste de riesgo (2023: 1,15 %)</span></div>
@@ -174,13 +174,13 @@ button{font:500 13px var(--sans);background:transparent;color:var(--accent);bord
   <ol>
     <li><strong>Informe Resumen BBVA en 2024</strong> (PDF aportado): «Datos relevantes del Grupo BBVA» y «Cuentas de resultados consolidadas», págs. 6–7. Publicado en <a href="https://accionistaseinversores.bbva.com/" target="_blank" rel="noopener">accionistaseinversores.bbva.com</a>.</li>
     <li><strong>BBVA ESG Data Pack 2024</strong> (Excel aportado): solo contiene datos ESG; no incluye cuenta de resultados. Su única referencia a eficiencia es un criterio de retribución, no el ratio.</li>
-    <li>Para contrastar saldos de dudosos y riesgo crediticio: Informe de Gestión Consolidado 2024 e Informe financiero anual en <a href="https://www.cnmv.es/" target="_blank" rel="noopener">CNMV</a> y en la web de accionistas de BBVA.</li>
+    <li><strong>Informe Trimestral 4T24 de BBVA</strong>, «Medidas alternativas de rendimiento (MAR)»: numerador y denominador oficiales del ROE, del ratio de eficiencia y de la tasa de mora. Publicado en <a href="https://accionistaseinversores.bbva.com/wp-content/uploads/2025/01/Informe-Resultados-4T24_esp.pdf" target="_blank" rel="noopener">accionistaseinversores.bbva.com</a> y en la <a href="https://www.cnmv.es/" target="_blank" rel="noopener">CNMV</a>.</li>
   </ol>
 </section>
 </div>
 
 <script>
-const ids=["mi","com","rof","otros","gastos","det","prov","imp","min","pn23","pn24","riesgo","dudosos"];
+const ids=["mi","com","rof","otros","gastos","det","prov","imp","min","fpm","orga","riesgo","dudosos"];
 const defaults={};ids.forEach(i=>defaults[i]=document.getElementById(i).value);
 const v=i=>parseFloat(document.getElementById(i).value)||0;
 const fmt=n=>Math.round(n).toLocaleString("es-ES");
@@ -193,11 +193,11 @@ function calc(){
   const bai=mn-v("det")-v("prov");
   const re=bai-v("imp");
   const ra=re-v("min");
-  const pnm=(v("pn23")+v("pn24"))/2;
+  const pnm=v("fpm")+v("orga");
   [["o-mb",mb],["o-mn",mn],["o-bai",bai],["o-re",re],["o-ra",ra],["o-pnm",pnm]].forEach(([id,x])=>document.getElementById(id).textContent=fmt(x));
   document.getElementById("k-ef").textContent=pct(v("gastos")/mb*100);
   document.getElementById("k-roe").textContent=pct(ra/pnm*100);
-  document.getElementById("k-mora").textContent=pct(v("dudosos")/v("riesgo")*100,2);
+  document.getElementById("k-mora").textContent=pct(v("dudosos")/v("riesgo")*100);
   draw([
     ["Margen de intereses",v("mi"),"total"],["Comisiones",v("com"),"d"],["ROF",v("rof"),"d"],["Otros",v("otros"),"d"],
     ["Margen bruto",mb,"total"],["Gastos explot.",-v("gastos"),"d"],["Margen neto",mn,"total"],
