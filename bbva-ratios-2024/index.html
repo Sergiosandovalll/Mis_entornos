@@ -55,6 +55,15 @@ button{font:500 13px var(--sans);background:transparent;color:var(--accent);bord
 .cmp div{border-top:2px solid var(--line);padding-top:8px}
 .cmp b{display:block;font:500 20px var(--mono)}
 .cmp span{font-size:13px;color:var(--muted)}
+.er{overflow-x:auto}
+.er table{min-width:640px;font-size:14px}
+.er th{font:600 12px/1.3 var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--muted);text-align:right;padding:8px 6px;border-bottom:2px solid var(--ink);vertical-align:bottom}
+.er th:first-child{text-align:left}
+.er td{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;padding:7px 6px}
+.er td:first-child{text-align:left;font-family:var(--sans);color:var(--muted);padding-left:14px}
+.er tr.m td{font-weight:600;color:var(--ink);border-top:1px solid var(--muted)}
+.er tr.m td:first-child{padding-left:6px;color:var(--ink)}
+.er tr.fin td{background:var(--accent-soft);color:var(--accent)}
 </style>
 
 <div class="wrap">
@@ -135,6 +144,30 @@ button{font:500 13px var(--sans);background:transparent;color:var(--accent);bord
   </div>
 </section>
 </div>
+
+<section class="panel">
+  <h2>Estado de resultados consolidado</h2>
+  <p class="note">Millones de euros. Entre paréntesis, cifras negativas. Fuente: Informe Resumen BBVA en 2024, «Cuentas de resultados consolidadas».</p>
+  <div class="er"><table>
+    <thead><tr><th>Concepto</th><th>2024</th><th>Δ %</th><th>Δ % a tipos de cambio constantes</th><th>2023</th></tr></thead>
+    <tbody>
+    <tr class="m"><td>Margen de intereses</td><td>25.267</td><td>9,4</td><td>12,9</td><td>23.089</td></tr>
+    <tr><td>Comisiones netas</td><td>7.988</td><td>27,0</td><td>30,8</td><td>6.288</td></tr>
+    <tr><td>Resultados de operaciones financieras</td><td>3.913</td><td>79,2</td><td>90,8</td><td>2.183</td></tr>
+    <tr><td>Otros ingresos y cargas de explotación</td><td>(1.686)</td><td>(16,5)</td><td>(21,7)</td><td>(2.018)</td></tr>
+    <tr class="m"><td>Margen bruto</td><td>35.481</td><td>20,1</td><td>25,0</td><td>29.542</td></tr>
+    <tr><td>Gastos de explotación</td><td>(14.193)</td><td>15,3</td><td>18,3</td><td>(12.308)</td></tr>
+    <tr class="m"><td>Margen neto</td><td>21.288</td><td>23,5</td><td>29,9</td><td>17.233</td></tr>
+    <tr><td>Deterioro de activos financieros no valorados a valor razonable con cambios en resultados</td><td>(5.745)</td><td>29,7</td><td>32,4</td><td>(4.428)</td></tr>
+    <tr><td>Provisiones o reversión de provisiones y otros resultados</td><td>(137)</td><td>(64,6)</td><td>(63,2)</td><td>(386)</td></tr>
+    <tr class="m"><td>Resultado antes de impuestos</td><td>15.405</td><td>24,0</td><td>31,9</td><td>12.419</td></tr>
+    <tr><td>Impuesto sobre beneficios</td><td>(4.830)</td><td>20,7</td><td>27,5</td><td>(4.003)</td></tr>
+    <tr class="m"><td>Resultado del ejercicio</td><td>10.575</td><td>25,7</td><td>34,0</td><td>8.416</td></tr>
+    <tr><td>Minoritarios</td><td>(521)</td><td>31,2</td><td>60,1</td><td>(397)</td></tr>
+    <tr class="m fin"><td>Resultado atribuido</td><td>10.054</td><td>25,4</td><td>32,9</td><td>8.019</td></tr>
+    </tbody>
+  </table></div>
+</section>
 
 <section class="panel src">
   <h2>Fuentes</h2>
